@@ -1,5 +1,9 @@
 package com.smithak.springs3.controller;
 
+import java.io.IOException;
+
+import javax.servlet.http.HttpServletResponse;
+
 import com.smithak.springs3.service.StorageService;
 
 import org.apache.http.HttpStatus;
@@ -7,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.StreamUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -28,11 +33,19 @@ public class StorgeController {
     }
 
     @GetMapping("/download/{fileName}")
-    public ResponseEntity<ByteArrayResource> downloadFile(@PathVariable String fileName) {
+    public void downloadFile(HttpServletResponse response, @PathVariable String fileName) {
         byte[] data = storageService.downloadFile(fileName);
         ByteArrayResource resource = new ByteArrayResource(data);
-        return ResponseEntity.ok().contentType(contentType(fileName)).contentLength(data.length)
-                .header("Content-Disposition", "attachment;filename=\"" + fileName + "\"").body(resource);
+        response.setContentType(MediaType.IMAGE_JPEG_VALUE);
+        try {
+            StreamUtils.copy(data, response.getOutputStream());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        // ResponseEntity<ByteArrayResource> return
+        // ResponseEntity.ok().contentType(contentType(fileName)).contentLength(data.length)
+        // .header("Content-Disposition", "attachment;filename=\"" + fileName +
+        // "\"").body(resource);
 
     }
 
